@@ -5,6 +5,19 @@ set -eu
 input=${1:?需要输入目录}
 output=${2:?需要输出目录}
 
-# TODO：删除下方提示和 exit 77，再填写你的命令。
-printf '%s\n' 'Q7 尚未实现' >&2
-exit 77
+cat > "$outdir/ssh_config" <<EOF
+Host aim-sentry
+  HostName ${HOST}
+  Port ${PORT}
+  User ${REMOTE_USER}
+  IdentityFile ${KEY_PATH}
+  KnownHostsFile ${KNOWN_HOSTS}
+  IdentitiesOnly yes
+  StrictHostKeyChecking yes
+  BatchMode yes
+EOF
+chmod 600 "$outdir/ssh_config"
+
+ssh -F"$output/ssh_config" aim-sentry whoami > "$output/remote-user.txt"
+
+ssh -F"$output/ssh_config" aim-sentry:"远端路径" "$output/received/error.log"
