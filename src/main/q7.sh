@@ -5,19 +5,25 @@ set -eu
 input=${1:?需要输入目录}
 output=${2:?需要输出目录}
 
-cat > "$outdir/ssh_config" <<EOF
+source "$input/remote.env"
+
+
+cat > "$output/ssh_config" <<EOF
 Host aim-sentry
-  HostName ${HOST}
-  Port ${PORT}
-  User ${REMOTE_USER}
-  IdentityFile ${KEY_PATH}
-  KnownHostsFile ${KNOWN_HOSTS}
-  IdentitiesOnly yes
-  StrictHostKeyChecking yes
-  BatchMode yes
+    HostName $HOST
+    Port $PORT
+    User $REMOTE_USER
+    IdentityFile "$KEY_PATH"
+    UserKnownHostsFile "$KNOWN_HOSTS"
+    IdentitiesOnly yes
+    StrictHostKeyChecking yes
+    BatchMode yes
 EOF
-chmod 600 "$outdir/ssh_config"
+chmod 600 "$output/ssh_config"
 
-ssh -F"$output/ssh_config" aim-sentry whoami > "$output/remote-user.txt"
 
-ssh -F"$output/ssh_config" aim-sentry:"远端路径" "$output/received/error.log"
+ssh -F "$output/ssh_config" aim-sentry whoami > "$output/remote-user.txt"
+
+
+mkdir -p "$output/received"
+scp -F "$output/ssh_config" "aim-sentry:$REMOTE_LOG" "$output/received/errors.log"
